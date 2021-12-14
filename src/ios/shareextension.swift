@@ -11,19 +11,43 @@
         )
     }
 
-    @objc func sendUrls() {
+
+    func getUserDefaults() -> UserDefaults? {
         guard let bundleIdentifier = Bundle.main.bundleIdentifier else {
-            return;
+            return nil
         }
-        let userDefaults = UserDefaults(suiteName: "group.\(bundleIdentifier).shareextension")
+        return UserDefaults(suiteName: "group.\(bundleIdentifier).shareextension")
+    }
+    
+    func getUrlResult() -> CDVPluginResult? {
+        let userDefaults = getUserDefaults()
         let urls = userDefaults?.array(forKey: "urls")
         let result = CDVPluginResult(status: CDVCommandStatus_OK, messageAs: urls)
-        result?.keepCallback = true
-        self.commandDelegate.send(result, callbackId: _command?.callbackId)
+        return result
+    }
+    
+    func clearUrl() {
+        let userDefaults = getUserDefaults()
         userDefaults?.removeObject(forKey: "urls")
+    }
+    
+    @objc func sendUrls() {
+        let result = getUrlResult()
+        result?.keepCallback = true
+        if ((_command) != nil) {
+            self.commandDelegate.send(result, callbackId: _command?.callbackId)
+            clearUrl()
+        }
     }
 
     @objc(onFiles:) func onFiles(command: CDVInvokedUrlCommand) {
         self._command = command
+    }
+    
+    
+    @objc(fetchUrls:) func fetchUrls(command: CDVInvokedUrlCommand) {
+        let result = getUrlResult()
+        self.commandDelegate.send(result, callbackId: command.callbackId)
+        clearUrl()
     }
 }

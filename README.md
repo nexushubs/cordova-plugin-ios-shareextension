@@ -26,8 +26,17 @@ App.configurePlugin('cordova-plugin-ios-shareextension', {
 
 ```js
 Meteor.isCordova && Meteor.startup(function () {
-  const cordova.shareextension.onFiles(function (urls) {
+  cordova.shareextension.onFiles(function (urls) {
     alert(JSON.stringify(urls, null, 2))
   })
 })
+
+// fetch urls manually, to resolve files that haven't been fetched yet
+// e.g. files come while app is quitted
+Tracker.autorun((computation) => {
+  if (!Meteor.loggingIn()) {
+    computation.stop();
+    cordova.shareextension.fetchUrls(onFiles);
+  }
+});
 ```
